@@ -1,0 +1,300 @@
+:root {
+  --bg-void: #03070b;
+  --green-neon: #00ff66;
+  --green-panel: rgba(6, 20, 15, 0.91);
+  --green-card: #092619;
+  --red-alert: #ff3b3b;
+  --red-panel: rgba(24, 6, 8, 0.92);
+  --red-card: #28080a;
+  --nominal-blue: #61caff;
+  --nominal-panel: rgba(6, 18, 28, 0.92);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background-color: var(--bg-void);
+  color: #ebfff3;
+  font-family: 'Nunito', sans-serif;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+.font-display {
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+.font-pixel {
+  font-family: 'Press Start 2P', monospace;
+}
+
+/* Lunar Surface & Earthrise Background Canvas */
+#lunar-bg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Subtle CRT scanline & vignette overlay */
+.crt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.14) 50%),
+    radial-gradient(circle at center, transparent 68%, rgba(2, 5, 8, 0.62) 100%);
+  background-size: 100% 4px, 100% 100%;
+}
+
+/* Phosphor green NASA Lunar Base panels */
+.panel-green {
+  background-color: var(--green-panel);
+  border: 2px solid var(--green-neon);
+  box-shadow: 0 4px 22px rgba(0, 0, 0, 0.55), 0 0 18px rgba(0, 255, 102, 0.14), inset 0 0 14px rgba(0, 255, 102, 0.04);
+  border-radius: 16px;
+  backdrop-filter: blur(4px);
+}
+
+.titlebar-green {
+  background: linear-gradient(90deg, rgba(0, 255, 102, 0.2), rgba(0, 255, 102, 0.05));
+  border-bottom: 2px solid rgba(0, 255, 102, 0.4);
+  color: var(--green-neon);
+}
+
+/* Crimson red NASA Space Weather Alert panel */
+.panel-red {
+  background-color: var(--red-panel);
+  border: 2px solid var(--red-alert);
+  box-shadow: 0 4px 22px rgba(0, 0, 0, 0.55), 0 0 20px rgba(255, 59, 59, 0.2), inset 0 0 16px rgba(255, 59, 59, 0.06);
+  border-radius: 16px;
+  backdrop-filter: blur(4px);
+}
+
+.titlebar-red {
+  background: linear-gradient(90deg, rgba(255, 59, 59, 0.25), rgba(255, 59, 59, 0.07));
+  border-bottom: 2px solid rgba(255, 59, 59, 0.4);
+  color: #ff7a7a;
+}
+
+/* Calm cyan panel for Nominal NASA Space Weather days */
+.panel-nominal {
+  background-color: var(--nominal-panel);
+  border: 2px solid var(--nominal-blue);
+  box-shadow: 0 4px 22px rgba(0, 0, 0, 0.55), 0 0 18px rgba(97, 202, 255, 0.16), inset 0 0 14px rgba(97, 202, 255, 0.05);
+  border-radius: 16px;
+  backdrop-filter: blur(4px);
+}
+
+.titlebar-nominal {
+  background: linear-gradient(90deg, rgba(97, 202, 255, 0.22), rgba(97, 202, 255, 0.06));
+  border-bottom: 2px solid rgba(97, 202, 255, 0.4);
+  color: #8ce0ff;
+}
+
+.glow-green {
+  text-shadow: 0 0 12px rgba(0, 255, 102, 0.5);
+}
+
+.glow-red {
+  text-shadow: 0 0 12px rgba(255, 59, 59, 0.55);
+}
+
+/* Gentle red border pulse while space alert remains unresolved */
+@keyframes pulse-red-border {
+  0%, 100% {
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.55), 0 0 16px rgba(255, 59, 59, 0.16), inset 0 0 12px rgba(255, 59, 59, 0.04);
+  }
+  50% {
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.55), 0 0 28px rgba(255, 59, 59, 0.38), inset 0 0 18px rgba(255, 59, 59, 0.1);
+  }
+}
+
+.red-pulse-active {
+  animation: pulse-red-border 2.6s infinite ease-in-out;
+}
+
+@keyframes card-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-appear {
+  animation: card-appear 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Unified neutral decision buttons */
+.choice-btn-neutral-green {
+  background-color: #0b2e1e;
+  border: 2px solid #35c977;
+  color: #ecfff4;
+  border-radius: 12px;
+  transition: transform 0.14s ease, background-color 0.14s ease, box-shadow 0.14s ease, opacity 0.2s ease;
+}
+
+.choice-btn-neutral-green:hover:not(:disabled) {
+  background-color: #134a31;
+  border-color: #00ff66;
+  box-shadow: 0 0 14px rgba(0, 255, 102, 0.28);
+  transform: translateY(-1px);
+}
+
+.choice-btn-neutral-alert {
+  background-color: #2b0c10;
+  border: 2px solid #e05252;
+  color: #fff2f2;
+  border-radius: 12px;
+  transition: transform 0.14s ease, background-color 0.14s ease, box-shadow 0.14s ease, opacity 0.2s ease;
+}
+
+.choice-btn-neutral-alert:hover:not(:disabled) {
+  background-color: #451319;
+  border-color: #ff6b6b;
+  box-shadow: 0 0 14px rgba(255, 75, 75, 0.28);
+  transform: translateY(-1px);
+}
+
+.choice-btn-neutral-nominal {
+  background-color: #0a2438;
+  border: 2px solid #4ba8db;
+  color: #eef9ff;
+  border-radius: 12px;
+  transition: transform 0.14s ease, background-color 0.14s ease, box-shadow 0.14s ease, opacity 0.2s ease;
+}
+
+.choice-btn-neutral-nominal:hover:not(:disabled) {
+  background-color: #113a59;
+  border-color: #61caff;
+  box-shadow: 0 0 14px rgba(97, 202, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.btn-chosen-good {
+  border-color: #00ff66 !important;
+  background-color: #0e3d26 !important;
+  box-shadow: 0 0 14px rgba(0, 255, 102, 0.38) !important;
+  opacity: 1 !important;
+  cursor: default;
+}
+
+.btn-chosen-bad {
+  border-color: #ff3b3b !important;
+  background-color: #3d0c10 !important;
+  box-shadow: 0 0 14px rgba(255, 59, 59, 0.42) !important;
+  opacity: 1 !important;
+  cursor: default;
+}
+
+.btn-not-chosen {
+  opacity: 0.48 !important;
+  cursor: default;
+}
+
+.btn-primary-action {
+  background: linear-gradient(90deg, #00cc52, #00ff66);
+  color: #040a07;
+  border: 2px solid #a8ffcb;
+  border-radius: 14px;
+  box-shadow: 0 0 20px rgba(0, 255, 102, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary-action:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 0 28px rgba(0, 255, 102, 0.55);
+}
+
+.btn-primary-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.vital-bar-fill {
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s ease;
+}
+
+/* Technical term hover/tap highlight */
+.tech-term {
+  border-bottom: 1.5px dotted #61caff;
+  color: #a8e8ff;
+  cursor: help;
+  padding: 0 1px;
+  border-radius: 3px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tech-term:hover,
+.tech-term:focus {
+  background-color: rgba(97, 202, 255, 0.18);
+  color: #ffffff;
+  outline: none;
+}
+
+/* Floating NASA Glossary Tooltip */
+#nasa-tooltip {
+  position: fixed;
+  z-index: 60;
+  max-width: 280px;
+  background-color: rgba(4, 18, 12, 0.97);
+  border: 2px solid #61caff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), 0 0 14px rgba(97, 202, 255, 0.28);
+  border-radius: 12px;
+  padding: 10px 12px;
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+/* Pixel-art canvas rendering for the graduation diploma */
+.pixelated-canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Difficulty Selector Cards on Intro Screen */
+.diff-card-btn {
+  background-color: #04130b;
+  border-color: rgba(0, 255, 102, 0.25);
+  opacity: 0.72;
+}
+
+.diff-card-btn:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  border-color: rgba(0, 255, 102, 0.65);
+}
+
+.diff-card-active-easy {
+  opacity: 1 !important;
+  background-color: #082738 !important;
+  border-color: #61caff !important;
+  box-shadow: 0 0 14px rgba(97, 202, 255, 0.32);
+}
+
+.diff-card-active-normal {
+  opacity: 1 !important;
+  background-color: #0b3320 !important;
+  border-color: #00ff66 !important;
+  box-shadow: 0 0 14px rgba(0, 255, 102, 0.34);
+}
+
+.diff-card-active-extreme {
+  opacity: 1 !important;
+  background-color: #300a0e !important;
+  border-color: #ff4d4d !important;
+  box-shadow: 0 0 14px rgba(255, 77, 77, 0.34);
+}

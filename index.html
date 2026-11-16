@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LUNAR BASE 30: ARTEMIS IV & ORION SURVIVAL SIM</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fuentes retro-futuristas NASA -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Nunito:wght@600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet" />
+
+  <!-- Estilos propios modularizados -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="p-2.5 sm:p-4 h-screen max-h-screen overflow-hidden flex flex-col justify-between">
+  <!-- Fondo procedural lunar -->
+  <canvas id="lunar-bg-canvas"></canvas>
+  <div class="crt-overlay"></div>
+
+  <!-- Tooltip flotante del glosario NASA -->
+  <div id="nasa-tooltip" class="hidden opacity-0">
+    <div id="nasa-tooltip-title" class="font-display text-xs font-bold uppercase tracking-wider text-[#61caff] mb-0.5">
+      TERM
+    </div>
+    <div id="nasa-tooltip-desc" class="text-xs sm:text-sm font-semibold text-[#ebfff3] leading-snug">
+      Definition
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PANTALLA DE INICIO / BRIEFING ARTEMIS IV
+       ========================================================================= -->
+  <div id="intro-screen" class="relative z-20 max-w-5xl w-full max-h-full overflow-y-auto mx-auto my-auto animate-appear">
+    <div class="panel-green p-5 sm:p-7 space-y-4 sm:space-y-5">
+      <!-- Cabecera horizontal -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-[#00ff66]/30 pb-3.5 text-center sm:text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-4xl sm:text-5xl">🌕🚀</span>
+          <div>
+            <h1 class="font-display text-3xl sm:text-4xl font-bold tracking-wider text-[#00ff66] glow-green leading-none">
+              LUNAR BASE 30
+            </h1>
+            <p class="font-display text-xs sm:text-sm font-bold tracking-widest text-[#9effc4] mt-1">
+              ARTEMIS IV & ORION SURVIVAL SIMULATOR
+            </p>
+          </div>
+        </div>
+
+        <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#00ff66]/15 border border-[#00ff66]/55 text-[#00ff66] text-xs sm:text-sm font-extrabold tracking-wide shrink-0">
+          🛰️ NASA ARTEMIS IV • SOUTH POLE
+        </div>
+      </div>
+
+      <!-- Contenido en 2 columnas -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+        <!-- Columna izquierda: briefing -->
+        <div class="md:col-span-7 bg-[#082617]/95 border border-[#00ff66]/45 rounded-xl p-4 sm:p-5 flex flex-col justify-between gap-3.5 text-left text-sm sm:text-base text-[#dcffea]">
+          <div class="flex items-start gap-3">
+            <span class="text-xl shrink-0">🚀</span>
+            <p class="js-glossarize leading-snug"><strong>30-Day Moon Mission:</strong> After docking at Lunar Gateway, your crew lands at the Moon’s South Pole for 30 days powered by real NASA space weather logs.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-xl shrink-0">🧠</span>
+            <p class="js-glossarize leading-snug"><strong>Every Choice Counts:</strong> Read both options carefully! Any action can boost systems, gather science samples, or critically damage equipment if you pick a reckless shortcut.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-xl shrink-0">🔬</span>
+            <p class="js-glossarize leading-snug"><strong>Survive & Collect Science:</strong> Keep Air, Battery, Shield, and Hull above <strong>0%</strong> through Lunar Day (+110°C) and Lunar Night (-170°C) while filling your Science bar for Orion!</p>
+          </div>
+        </div>
+
+        <!-- Columna derecha: estado de datos, nombre, dificultad y botón de lanzamiento -->
+        <div class="md:col-span-5 flex flex-col justify-between gap-2.5">
+          <!-- Estado de carga automática de telemetría NASA -->
+          <div id="archive-status-box" class="bg-[#061c11] border-2 border-[#00ff66]/70 rounded-xl p-3 text-left space-y-1">
+            <div id="archive-status-text" class="font-display text-xs sm:text-sm font-bold text-[#00ff66]">
+              ⏳ Loading NASA telemetry archive...
+            </div>
+            <p id="archive-window-preview" class="text-xs text-[#9effc4] leading-snug">
+              Connecting to local NASA telemetry archive...
+            </p>
+          </div>
+
+          <!-- Nombre del astronauta -->
+          <div class="bg-[#061c11] border-2 border-[#00ff66]/60 rounded-xl p-3 text-left space-y-1">
+            <label for="astronaut-name-input" class="block font-display text-xs font-bold uppercase tracking-wider text-[#00ff66]">
+              👩‍🚀 ASTRONAUT NAME (HUD & DIPLOMA):
+            </label>
+            <input
+              id="astronaut-name-input"
+              type="text"
+              maxlength="22"
+              placeholder="e.g. Cmdr. Sofia"
+              onkeydown="if(event.key==='Enter'){ startNewGame(); }"
+              class="w-full px-3 py-1.5 rounded-lg bg-[#031009] border border-[#00ff66]/55 text-white font-display text-sm sm:text-base font-bold tracking-wide placeholder-[#5c9e78] focus:outline-none focus:border-[#00ff66] focus:ring-2 focus:ring-[#00ff66]/30"
+            />
+          </div>
+
+          <!-- Selector de dificultad (3 niveles) -->
+          <div class="bg-[#061c11] border-2 border-[#00ff66]/60 rounded-xl p-3 text-left space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-display text-xs font-bold uppercase tracking-wider text-[#00ff66]">
+                🎚️ MISSION DIFFICULTY:
+              </span>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#00ff66]/15 text-[#9effc4]">
+                3 MODES
+              </span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-1.5">
+              <button
+                type="button"
+                id="btn-diff-easy"
+                data-sound="ui"
+                onclick="selectDifficulty('easy')"
+                class="diff-card-btn p-2 rounded-lg border text-center cursor-pointer transition"
+              >
+                <div class="font-display text-xs font-bold text-[#61caff]">🌱 EASY</div>
+                <div class="text-[10px] font-bold text-[#b8e8ff] leading-tight mt-0.5">Rich Minerals</div>
+              </button>
+
+              <button
+                type="button"
+                id="btn-diff-normal"
+                data-sound="ui"
+                onclick="selectDifficulty('normal')"
+                class="diff-card-btn p-2 rounded-lg border text-center cursor-pointer transition"
+              >
+                <div class="font-display text-xs font-bold text-[#00ff66]">⭐ NORMAL</div>
+                <div class="text-[9px] font-extrabold uppercase tracking-wide text-[#040a07] bg-[#00ff66] rounded px-1 py-0.2 mt-0.5 inline-block">
+                  RECOMMENDED
+                </div>
+              </button>
+
+              <button
+                type="button"
+                id="btn-diff-extreme"
+                data-sound="ui"
+                onclick="selectDifficulty('extreme')"
+                class="diff-card-btn p-2 rounded-lg border text-center cursor-pointer transition"
+              >
+                <div class="font-display text-xs font-bold text-[#ff6b6b]">🔥 EXTREME</div>
+                <div class="text-[10px] font-bold text-[#ffb8b8] leading-tight mt-0.5">Hardcore Sim</div>
+              </button>
+            </div>
+
+            <p id="difficulty-desc-text" class="text-[11px] text-[#dcffea] leading-snug bg-[#031009]/90 border border-[#00ff66]/25 rounded-lg px-2.5 py-1.5">
+              Balanced survival: mistakes set you back instead of causing an instant loss.
+            </p>
+          </div>
+
+          <button
+            id="btn-launch-mission"
+            data-sound="start"
+            onclick="startNewGame()"
+            class="btn-primary-action w-full py-2.5 sm:py-3 px-5 font-display text-base sm:text-lg font-bold tracking-wide cursor-pointer"
+          >
+            🚀 LAUNCH ARTEMIS IV MISSION
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       TABLERO PRINCIPAL DEL JUEGO
+       ========================================================================= -->
+  <div id="game-board" class="hidden relative z-10 max-w-[1320px] w-full h-full max-h-full overflow-hidden mx-auto flex-col gap-2.5 flex-1">
+
+    <!-- 1. CABECERA SUPERIOR -->
+    <header class="panel-green p-2.5 sm:p-3 flex flex-col gap-2 shrink-0">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1
+            id="day-heading"
+            class="font-display text-xl sm:text-3xl font-bold tracking-wider text-[#00ff66] glow-green leading-none"
+          >
+            DAY 1 / 30
+          </h1>
+          <span
+            id="lunar-phase-pill"
+            class="px-2.5 py-0.5 rounded-full border border-[#ffbe3b] bg-[#291e07] text-[#ffd885] font-extrabold text-xs tracking-wide"
+          >
+            ☀️ LUNAR DAY (+110°C)
+          </span>
+          <span
+            id="hud-astronaut-badge"
+            class="px-2.5 py-0.5 rounded-full border border-[#00ff66]/70 bg-[#082b1a] text-[#9effc4] font-display font-bold text-xs tracking-wide"
+          >
+            👩‍🚀 CMDR. EXPLORER
+          </span>
+          <span
+            id="hud-difficulty-badge"
+            class="px-2.5 py-0.5 rounded-full border border-[#00ff66]/70 bg-[#082b1a] text-[#00ff66] font-display font-bold text-xs tracking-wide"
+          >
+            ⭐ RECOMMENDED
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <div
+            id="turn-progress-pill"
+            class="px-3 py-0.5 rounded-full bg-[#082617] border border-[#00ff66]/65 text-xs font-extrabold text-[#b8ffd6]"
+          >
+            2 DECISIONS LEFT
+          </div>
+
+          <button
+            id="music-btn"
+            data-sound="ui"
+            onclick="toggleLoFiMusic()"
+            title="Toggle chill space Lo-Fi music"
+            class="px-2.5 py-0.5 rounded-full bg-[#082617] border border-[#61caff]/60 text-xs font-bold text-[#9ee4ff] hover:bg-[#0e3647] cursor-pointer transition"
+          >
+            🎵 Lo-Fi ON
+          </button>
+
+          <button
+            id="sound-btn"
+            data-sound="ui"
+            onclick="toggleAudio()"
+            title="Toggle terminal sound effects"
+            class="px-2.5 py-0.5 rounded-full bg-[#082617] border border-[#00ff66]/50 text-xs font-bold text-[#00ff66] hover:bg-[#104229] cursor-pointer transition"
+          >
+            🔊 SFX
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Sistemas Vitales de la Base (0% a 100%) -->
+      <div class="w-full grid grid-cols-2 lg:grid-cols-4 gap-2 text-left">
+        <div class="bg-[#082617] border border-[#00ff66]/45 rounded-xl p-2">
+          <div class="flex items-center justify-between text-xs font-extrabold mb-1">
+            <span class="text-[#c9ffdf]">🫁 Air</span>
+            <span id="val-air" class="font-display text-sm text-[#00ff66]">70%</span>
+          </div>
+          <div class="w-full h-2 bg-[#03120b] rounded-full overflow-hidden border border-[#00ff66]/30">
+            <div id="bar-air" class="vital-bar-fill h-full bg-[#00ff66] rounded-full" style="width: 70%;"></div>
+          </div>
+        </div>
+
+        <div class="bg-[#082617] border border-[#00ff66]/45 rounded-xl p-2">
+          <div class="flex items-center justify-between text-xs font-extrabold mb-1">
+            <span class="text-[#c9ffdf]">🔋 Battery</span>
+            <span id="val-battery" class="font-display text-sm text-[#00ff66]">70%</span>
+          </div>
+          <div class="w-full h-2 bg-[#03120b] rounded-full overflow-hidden border border-[#00ff66]/30">
+            <div id="bar-battery" class="vital-bar-fill h-full bg-[#00ff66] rounded-full" style="width: 70%;"></div>
+          </div>
+        </div>
+
+        <div class="bg-[#082617] border border-[#00ff66]/45 rounded-xl p-2">
+          <div class="flex items-center justify-between text-xs font-extrabold mb-1">
+            <span class="text-[#c9ffdf]">🛡️ Shield</span>
+            <span id="val-shield" class="font-display text-sm text-[#00ff66]">70%</span>
+          </div>
+          <div class="w-full h-2 bg-[#03120b] rounded-full overflow-hidden border border-[#00ff66]/30">
+            <div id="bar-shield" class="vital-bar-fill h-full bg-[#00ff66] rounded-full" style="width: 70%;"></div>
+          </div>
+        </div>
+
+        <div class="bg-[#082617] border border-[#00ff66]/45 rounded-xl p-2">
+          <div class="flex items-center justify-between text-xs font-extrabold mb-1">
+            <span class="text-[#c9ffdf]">🛠️ Hull</span>
+            <span id="val-hull" class="font-display text-sm text-[#00ff66]">75%</span>
+          </div>
+          <div class="w-full h-2 bg-[#03120b] rounded-full overflow-hidden border border-[#00ff66]/30">
+            <div id="bar-hull" class="vital-bar-fill h-full bg-[#00ff66] rounded-full" style="width: 75%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de averías activas -->
+      <div id="active-drawbacks-bar" class="hidden flex-wrap items-center gap-1.5 bg-[#2b0909]/95 border border-[#ff3b3b] rounded-xl px-2.5 py-1 text-xs font-extrabold text-[#ffb8b8] animate-appear">
+      </div>
+    </header>
+
+    <!-- 2. ÁREA DE TRABAJO EN 2 COLUMNAS -->
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 min-h-0 overflow-hidden">
+
+      <!-- COLUMNA IZQUIERDA: MISIÓN BASE + PROGRESO CIENTÍFICO -->
+      <div class="lg:col-span-6 flex flex-col gap-2.5 min-h-0">
+        <section class="panel-green overflow-hidden flex flex-col justify-between flex-1 min-h-0">
+          <div class="titlebar-green px-3.5 py-2 flex items-center justify-between gap-2 shrink-0">
+            <div class="flex items-center gap-2">
+              <h2 class="font-display text-sm sm:text-base font-bold tracking-wide">
+                📋 1. ARTEMIS BASE MISSION
+              </h2>
+            </div>
+            <span
+              id="mission-status-badge"
+              class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-[#00ff66]/15 border border-[#00ff66]/60 text-[#00ff66]"
+            >
+              YOUR MOVE
+            </span>
+          </div>
+
+          <div class="p-3 flex flex-col justify-between flex-1 gap-2.5 min-h-0">
+            <div class="bg-[#082617] border border-[#00ff66]/40 rounded-xl p-2.5 flex items-start gap-2.5">
+              <div id="mission-emoji" class="text-2xl sm:text-3xl shrink-0">☀️</div>
+              <div>
+                <div id="mission-area" class="text-[11px] font-extrabold uppercase tracking-wider text-[#00ff66] mb-0.5">
+                  Solar Arrays
+                </div>
+                <p id="mission-description" class="text-sm sm:text-base font-bold text-white leading-snug">
+                  Loading base mission...
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                id="btn-mission-opt1"
+                data-sound="choice"
+                onclick="selectMissionOption(1)"
+                class="choice-btn-neutral-green p-2.5 sm:p-3 text-left cursor-pointer flex flex-col justify-between gap-1.5"
+              ></button>
+
+              <button
+                id="btn-mission-opt2"
+                data-sound="choice"
+                onclick="selectMissionOption(2)"
+                class="choice-btn-neutral-green p-2.5 sm:p-3 text-left cursor-pointer flex flex-col justify-between gap-1.5"
+              ></button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Barra de progreso científico -->
+        <section class="panel-green p-3 space-y-1.5 shrink-0">
+          <div class="flex items-center justify-between gap-2">
+            <div class="font-display text-xs font-bold uppercase tracking-wider text-[#9effc4]">
+              🔬 ORION RETURN SCIENCE PROGRESS
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="last-sample-pill" class="text-xs font-bold text-[#a8e8ff]">
+                Collect lunar samples
+              </span>
+              <span id="val-science" class="font-display text-sm sm:text-base font-bold text-[#00ff66]">
+                0%
+              </span>
+            </div>
+          </div>
+
+          <div class="w-full h-3 bg-[#03120b] rounded-full overflow-hidden border border-[#00ff66]/40 p-0.5">
+            <div
+              id="bar-science"
+              class="vital-bar-fill h-full bg-gradient-to-r from-[#00cc52] via-[#00ff66] to-[#61caff] rounded-full"
+              style="width: 0%;"
+            ></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- COLUMNA DERECHA: ALERTA ESPACIAL NASA -->
+      <section id="alerts-panel" class="lg:col-span-6 panel-red red-pulse-active overflow-hidden flex flex-col justify-between min-h-0">
+        <div class="shrink-0">
+          <div id="alerts-titlebar" class="titlebar-red px-3.5 py-2 flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <h2 id="alerts-panel-heading" class="font-display text-sm sm:text-base font-bold tracking-wide text-[#ff5c5c] glow-red">
+                🚨 2. NASA SPACE ALERT
+              </h2>
+            </div>
+            <span
+              id="historical-date-pill"
+              class="font-display text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#ff3b3b]/20 border border-[#ff3b3b]/60 text-[#ffb8b8]"
+            >
+              📅 NASA LOG: 2024-05-01
+            </span>
+          </div>
+
+          <div id="alerts-telemetry-bar" class="px-3.5 py-1.5 bg-[#240707] border-b border-[#ff3b3b]/40 flex flex-wrap items-center justify-between gap-2 text-xs font-extrabold">
+            <span class="text-[#ffb5b5]">☀️ <span class="tech-term" data-term="Solar Flare">Flare</span>: <strong id="telem-flare" class="font-display text-white">M1.9</strong></span>
+            <span class="text-[#ffb5b5]">🧲 <span class="tech-term" data-term="Protons">SEP</span>: <strong id="telem-sep" class="font-display text-white">Nominal</strong></span>
+            <span class="text-[#ffb5b5]">☢️ <span class="tech-term" data-term="RadLab">RadLab</span>: <strong id="telem-rad" class="font-display text-white">19.8</strong> <span class="tech-term" data-term="µGy/h">µGy/h</span></span>
+            <span class="text-[#ffb5b5]">☄️ <span class="tech-term" data-term="NEO">NEO</span>: <strong id="telem-neo" class="font-display text-white">None < 6.0 LD</strong></span>
+          </div>
+        </div>
+
+        <div id="alerts-cards-container" class="p-3 flex-1 flex flex-col justify-between gap-2.5 min-h-0">
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- =========================================================================
+       MODAL DE RESUMEN DE FIN DE DÍA
+       ========================================================================= -->
+  <div id="day-summary-modal" class="hidden fixed inset-0 z-30 bg-[#03070b]/88 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="panel-green max-w-md w-full p-5 space-y-3.5 animate-appear">
+      <div class="text-center space-y-1">
+        <div id="modal-summary-icon" class="text-4xl">☀️📊</div>
+        <h2 id="modal-summary-title" class="font-display text-2xl sm:text-3xl font-bold text-[#00ff66] glow-green">
+          DAY 1 COMPLETED
+        </h2>
+        <div id="modal-summary-nasa-date" class="font-display text-xs sm:text-sm font-bold text-[#9effc4]">
+          NASA Log: 2024-05-01
+        </div>
+      </div>
+
+      <div class="bg-[#082617] border border-[#00ff66]/45 rounded-xl p-3.5 space-y-2">
+        <div class="text-xs font-extrabold uppercase tracking-wider text-[#9effc4] text-center">
+          TODAY'S SYSTEM CHANGES
+        </div>
+        <div id="modal-summary-changes" class="grid grid-cols-1 gap-1.5 text-sm font-extrabold">
+        </div>
+      </div>
+
+      <div id="modal-summary-drawbacks" class="hidden bg-[#2b0909] border border-[#ff3b3b] rounded-xl p-2.5 text-xs font-bold text-[#ffb8b8]">
+      </div>
+
+      <div id="modal-summary-vitals" class="grid grid-cols-4 gap-2 text-center text-xs font-extrabold">
+      </div>
+
+      <button
+        id="modal-continue-btn"
+        data-sound="nextDay"
+        onclick="proceedAfterSummary()"
+        class="btn-primary-action w-full py-3 px-6 font-display text-lg font-bold tracking-wide cursor-pointer"
+      >
+        CONTINUE TO DAY 2 ➔
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PANTALLA DE DERROTA
+       ========================================================================= -->
+  <div id="defeat-screen" class="hidden fixed inset-0 z-30 bg-[#03070b]/92 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="panel-red max-w-md w-full p-5 text-center space-y-3.5 animate-appear">
+      <div class="text-5xl">🚨🛸</div>
+      <h2 class="font-display text-2xl sm:text-3xl font-bold text-[#ff4d4d] glow-red">
+        ORION EMERGENCY ABORT!
+      </h2>
+      <p id="defeat-message" class="text-sm sm:text-base font-bold text-white leading-relaxed">
+        One of your vital base systems dropped to 0%.
+      </p>
+      <div id="defeat-advice" class="bg-[#280808] border border-[#ff3b3b]/55 rounded-xl p-3 text-xs sm:text-sm text-[#ffd6d6] leading-relaxed">
+        Tip for your next mission...
+      </div>
+      <button
+        data-sound="start"
+        onclick="returnToIntro()"
+        class="choice-btn-neutral-alert w-full py-3 px-6 font-display text-lg font-bold tracking-wide cursor-pointer"
+      >
+        🔄 NEW ARTEMIS IV MISSION
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PANTALLA DE VICTORIA + DIPLOMA PIXEL-ART
+       ========================================================================= -->
+  <div id="victory-screen" class="hidden fixed inset-0 z-30 bg-[#03070b]/92 backdrop-blur-xs flex items-center justify-center p-3 overflow-hidden">
+    <div class="panel-green max-w-xl w-full p-4 text-center space-y-3 animate-appear my-auto">
+      <div class="space-y-0.5">
+        <h2 class="font-display text-xl sm:text-2xl font-bold text-[#00ff66] glow-green">
+          🚀 ORION SPLASHDOWN — 30 DAYS SURVIVED!
+        </h2>
+        <p id="victory-subtitle" class="text-xs sm:text-sm text-[#dcffea]">
+          Mission complete! Here is your official pixel-art NASA Artemis IV Graduation Diploma:
+        </p>
+      </div>
+
+      <div class="bg-[#04100a] p-2 rounded-xl border-2 border-[#ffbe3b]/80 shadow-[0_0_24px_rgba(255,190,59,0.25)]">
+        <canvas
+          id="diploma-canvas"
+          width="640"
+          height="420"
+          class="pixelated-canvas w-full max-h-[54vh] object-contain rounded-lg block mx-auto"
+        ></canvas>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <button
+          data-sound="choice"
+          onclick="downloadDiplomaPNG()"
+          class="choice-btn-neutral-green py-2.5 px-4 font-display text-sm sm:text-base font-bold tracking-wide cursor-pointer"
+        >
+          💾 DOWNLOAD DIPLOMA (PNG)
+        </button>
+
+        <button
+          data-sound="start"
+          onclick="returnToIntro()"
+          class="btn-primary-action py-2.5 px-4 font-display text-sm sm:text-base font-bold tracking-wide cursor-pointer"
+        >
+          🚀 PLAY ANOTHER 30 DAYS
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. Datos estáticos y telemetría NASA (carpeta data/) -->
+  <script src="data/nasa_120_days_6.js" onerror="window.__archiveScriptFailed = true;"></script>
+  <script src="data/missionsData.js"></script>
+
+  <!-- 2. Sistemas de fondo y audio (carpeta js/systems/) -->
+  <script src="js/systems/background.js"></script>
+  <script src="js/systems/audio.js"></script>
+
+  <!-- 3. Componentes de interfaz (carpeta js/ui/) -->
+  <script src="js/ui/glossary.js"></script>
+  <script src="js/ui/diploma.js"></script>
+
+  <!-- 4. Motor principal del juego (carpeta js/core/) -->
+  <script src="js/core/game.js"></script>
+</body>
+</html>
